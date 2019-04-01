@@ -115,18 +115,47 @@ def parse_txt(txt_path,H,W):
         float_list[2] = float_list[2] * W
         float_list[3] = float_list[3] * H
 
-        int_list = [int(i) for i in float_list]
-        coords.append(int_list)
+        #int_list = [int(i) for i in float_list]
+        coords.append(float_list)
     
     return coords,lables
 
 
-'''
+"""
 def save_txt(txt_path,H,W,bboxes,lables):
 
-     txt = open(txt_path,'w')
-     for bbox in bbox:
-'''
+    txt = open(txt_path,'w')
+    
+     
+    for idx,box in enumerate(bboxes,0):
+
+        box = [float(i) for i in box]
+        box_w = box[2] - box[0]
+        print (box_w/W)
+        #box_h = box[1] - box[3]
+         
+        tlx = box[0] / W
+        trx = (box[0] + box_w)/W
+        brx = box[2] / W
+        blx = (box[2] - box_w)/W
+        
+        tly = box[1]/H
+        try_ = (box[1] + box_w)/H
+        bry = box[3] /H
+        bly = (box[3] -box_w)/H
+
+        number = [4,tlx,trx,brx,blx,tly,try_,bry,bly]
+        print (number)
+        line = ','
+        line = line.join([str(s) for s in number])
+        line = line + ','+lables[idx] + ',\n'
+        #print(line)
+        txt.write(line)
+    txt.close()
+"""    
+    
+         
+
 
 def save_img(img_path,img):
 
@@ -892,7 +921,7 @@ if __name__ == '__main__':
                 cnt += 1
 
                 new_pic_path = 'D:/train/images_hsv/'+ os.path.splitext(file)[0] + '_5.jpg'
-                #new_txt_path = os.path.splitext(txt_path)[0] + '_1.txt'
+                #new_txt_path = 'D:/train/lables_hsv/'+os.path.splitext(file)[0] + '_1.txt'
                 #show_pic(auged_img, auged_bboxes)  # 强化后的图
                 save_img(new_pic_path,auged_img)
                 #save_txt(new_txt_path,H,W,bboxes,lables)
