@@ -48,6 +48,8 @@ from skimage.util import random_noise
 
 from skimage import exposure
 
+from skimage import transform,data
+
 
 def show_pic(img, bboxes=None):
     '''
@@ -101,28 +103,35 @@ def parse_txt(txt_path,H,W):
     lines = txt.readlines()
     coords = []
     lables = []
+    dis = []
     
     for line in lines:
         str_list = line.split(',')
 
         a = [str_list[1],str_list[5],str_list[3],str_list[7]]
+        b = [str_list[2],str_list[4],str_list[6],str_list[8]]
+        
         lables.append(str_list[9])
         
-        float_list = [float(i) for i in a]
+        float_list_a = [float(i) for i in a]
+        float_list_b = [float(i) for i in b]
 
-        float_list[0] = float_list[0] * W
-        float_list[1] = float_list[1] * H
-        float_list[2] = float_list[2] * W
-        float_list[3] = float_list[3] * H
+        float_list_c = [float_list_b[i] - float_list_a[i] for i in range(len(float_list_a))]
+        dis.append(float_list_c)
+
+        float_list_a[0] = float_list_a[0] * W
+        float_list_a[1] = float_list_a[1] * H
+        float_list_a[2] = float_list_a[2] * W
+        float_list_a[3] = float_list_a[3] * H
 
         #int_list = [int(i) for i in float_list]
-        coords.append(float_list)
+        coords.append(float_list_a)
     
-    return coords,lables
+    return coords,lables,dis
 
 
-"""
-def save_txt(txt_path,H,W,bboxes,lables):
+
+def save_txt(txt_path,H,W,bboxes,lables,dis):
 
     txt = open(txt_path,'w')
     
@@ -131,30 +140,28 @@ def save_txt(txt_path,H,W,bboxes,lables):
 
         box = [float(i) for i in box]
         box_w = box[2] - box[0]
-        print (box_w/W)
+        #print (box_w/W)
         #box_h = box[1] - box[3]
          
         tlx = box[0] / W
-        trx = (box[0] + box_w)/W
+        trx = tlx + dis[idx][0]
         brx = box[2] / W
-        blx = (box[2] - box_w)/W
+        blx = brx + dis[idx][1]
         
         tly = box[1]/H
-        try_ = (box[1] + box_w)/H
+        try_ = tly +  dis[idx][2]
         bry = box[3] /H
-        bly = (box[3] -box_w)/H
+        bly =  bry + dis[idx][3]
 
         number = [4,tlx,trx,brx,blx,tly,try_,bry,bly]
-        print (number)
+        #print (number)
         line = ','
         line = line.join([str(s) for s in number])
         line = line + ','+lables[idx] + ',\n'
-        #print(line)
+        print(line)
         txt.write(line)
     txt.close()
-"""    
-    
-         
+   
 
 
 def save_img(img_path,img):
@@ -358,6 +365,13 @@ class DataAugmentForObjectDetection():
 
         return cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
 
+    def _resclae(self,img):
+        
+        scale = random.uniform(0.5, 2)
+        height, width = img.shape[:2]
+        img = cv2.resize(img,(int(width*scale),int(height*scale)), interpolation=cv2.INTER_CUBIC)
+
+        return img
     # 旋转
 
     def _rotate_img_bbox(self, img, bboxes, angle=5, scale=1.):
@@ -873,6 +887,9 @@ class DataAugmentForObjectDetection():
         #hsv
         #img = self._hsv(img)
 
+        #rescale
+        img = self._resclae(img)
+
 
 
 
@@ -912,7 +929,7 @@ if __name__ == '__main__':
                 img = cv2.imread(pic_path)
                 H = img.shape[0]
                 W = img.shape[1]
-                bboxes,lables = parse_txt(txt_path,H,W)  #解析得到box信息，格式为[[x_min,y_min,x_max,y_max,name]]                
+                bboxes,lables,dis = parse_txt(txt_path,H,W)  #解析得到box信息，格式为[[x_min,y_min,x_max,y_max,name]]                
 
                 #show_pic(img, bboxes)  # 原图
 
@@ -920,11 +937,11 @@ if __name__ == '__main__':
 
                 cnt += 1
 
-                new_pic_path = 'D:/train/images_hsv/'+ os.path.splitext(file)[0] + '_5.jpg'
-                #new_txt_path = 'D:/train/lables_hsv/'+os.path.splitext(file)[0] + '_1.txt'
+                new_pic_path = 'D:/train/images_rescale/'+ os.path.splitext(file)[0] + '_7.jpg'
+                #new_txt_path = 'D:/train/images_rescale/'+os.path.splitext(file)[0] + '_7.txt'
                 #show_pic(auged_img, auged_bboxes)  # 强化后的图
                 save_img(new_pic_path,auged_img)
-                #save_txt(new_txt_path,H,W,bboxes,lables)
+                #save_txt(new_txt_path,H,W,bboxes,lables,dis)
 
 '''
 
