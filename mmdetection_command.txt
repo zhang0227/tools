@@ -1,0 +1,5 @@
+./tools/dist_train.sh configs/ttfnet/ttfnet_r18_1x.py 2 --validate
+
+python tools/test.py configs/ttfnet/ttfnet_r18_1x.py work_dirs/csalids/ttfnet18_1x/latest.pth --out results.pkl --eval bbox
+
+python tools/coco_eval.py results.pkl.bbox.json --ann data/coco/annotations/instances_val2017.json --types bbox --classwise
